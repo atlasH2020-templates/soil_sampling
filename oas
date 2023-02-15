@@ -787,7 +787,7 @@
           "Zn",
           "N_min",
           "C/N",
-          "CEC",
+          "cec",
           "soc",
           "bulk_density",
           "weight_sample",
