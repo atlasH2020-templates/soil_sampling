@@ -1,0 +1,349 @@
+<html>
+<head>
+    <style type="text/css">
+        body { font-family: courier, courier new, monospace; font-size:12px; margin-left: 42px; width: 465px; white-space: pre-line; }
+        h2 { margin: 10px 0 0 -22px; font-size:12px; padding: 0 !important }
+        table { font-size: 10px; margin-left: -22px; width: 450px; }
+        div.header { padding: 0; margin: 0 0 0 -22px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+ATLAS Service Template Specification
+Name                                                soil_sampling
+Version                                                     0.0.1
+Author(s)                            M. Caballero (AgriCircle AG)
+</div>
+
+<h2>The "soil_sampling" ATLAS Service Template</h2>
+<div style="margin-left: -22px;">
+Abstract
+
+This document describes the specifications for soil_sampling services whose purpose is provide lab measurements for soil samples on a field.
+</div>
+<h2>1 Introduction</h2>
+
+blabla
+
+<h2>2 Terminology</h2>
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119 and indicate requirement levels for compliant implementations.
+
+The notation "[xxx]" (xxx in square brackets) is equivalent to "array of xxx".
+
+When used alone, the term "soil_sampling" refers to "soil_sampling ATLAS Service Template". Instead, "soil_sampling service" is equivalent to "an ATLAS Service implementing the soil_sampling ATLAS Service Template".
+
+<h2>3 Pre-requisites</h2>
+
+A thorough understanding in the following is required for
+both service consumers or service provider implementors:
+<pre>
+    - GeoJSON specifications (<a href="https://geojson.org/">https://geojson.org/</a>)
+    - GeoPackage specifications (<a href="https://www.geopackage.org/">https://www.geopackage.org/</a>)
+</pre>
+
+<h2>4 soil_sampling Usage Scenarios</h2>
+
+the soil_sampling service template standardizes the means by which an ADIS requests a soil sampling campaign to be carried out, the soil properties the samples should be analyzed for, and the format of the analysis results.
+
+<img src="doc/soil_sampling_process.png" style="width: 420px" />
+
+The high level flow is: the farmer (or an advisor) sends an order to a soil_sampling service that includes the fields, the zones within each field to be sampled, and the stitches to be sampled. The soil_sampling service enables a soil sampler to access the relevant information which includes all necessary data to physically carry out the procedure on the fields. At the end of the collection, the soil sampler indicates notifies the soil_sampling service of completion, receives back the shipping details and shipping references of an analysis lab to which he sends the bags. Upon reception of the bags, the lab carries out the required analysis and transmits them back to the organization operating the soil_sampling service, which in turn converts the information into the standardized format and returns it to the original requester.
+
+<h2>5 Service Template API Overview</h2>
+
+This section provides a very high-level summary of the soil_sampling API:
+<pre>
+    Send order
+    Get order info
+    Cancel order
+    Get sampler info
+    Complete sampling procedure
+</pre>
+Implementations of soil_sampling may require more parameters that are not included in the API. Such implementations MAY provide end-user configuration and management tools in a proprietary user interface.
+
+Within this section, operations are summarised with simple tables:
+<pre>
++--------------------------------------------+
+| logical operation name                     |
++-------------+------------------------------+
+|      Inputs | &lt;URL parameters or           |
+|             | request body attributes&gt;     |
++-------------+------------------------------+
+|     Outputs | &lt;body attributes&gt;            |
++-------------+------------------------------+
+</pre>
+Only the most meaningful parameters are discussed in this document. Please refer to the OpenAPI specifications for full details.
+
+soil_sampling services are not required to handle intense traffic from a single client, such as the one that may result from being directly invoked on user interface interactions in an FMIS, for instance. Implementors MAY generate a 429 TOO MANY REQUESTS error response if the rate of calls exceed some pre-defined quota.
+
+<h2>5.1 Endpoints</h2>
+
+<h2>5.1.1 Send Order</h2>
+
+This endpoint is used to send an order for a soil sampling campaign.
+<pre>
++--------------------------------------------+
+| send_order                                 |
++-------------+------------------------------+
+|      Inputs | fields(zones, stitches),     |
+|             | measurements, ...            |
++-------------+------------------------------+
+|     Outputs | order info                   |
++-------------+------------------------------+
+</pre>
+soil_sampling services may retrieve any relevant information for preparing estimates from the field_data service (e.g., boundaries, current crop, previous applications, etc.).
+
+Soil sampling is a lengthy process involving a variety of manual operations. Clients may either poll regularly or request to be notified about status changes.
+
+<h2>5.1.2 Get Order Info</h2>
+
+This function returns information about a soil sampling order.
+<pre>
++--------------------------------------------+
+| order_info                                 |
++-------------+------------------------------+
+|      Inputs | order id                     |
++-------------+------------------------------+
+|     Outputs | order info                   |
++-------------+------------------------------+
+</pre>
+The order info contains a status about the order which is one of PENDING, SOIL_SAMPLING_IN_PROGRESS, LAB_ANALYSIS_IN_PROGRESS, CONFIGURATION_REQUIRED, READY, FAILED. The CONFIGURATION_REQUIRED status indicates that the end-user is required to perform some manual configuration on the service’s proprietary UI in order to enable the completion of the requested soil sampling.
+
+<h2>5.2.3 Cancel Order</h2>
+<pre>
++--------------------------------------------+
+| cancel_order                               |
++-------------+------------------------------+
+|      Inputs | request id                   |
++-------------+------------------------------+
+|     Outputs | -                            |
++-------------+------------------------------+
+</pre>
+Invoking this endpoint causes the order status to become FAILED. If an order that is not yet in READY state is cancelled and if a notification URL was provided in send_order, a notification MUST be dispatched.
+
+<h2>6 Data Formats</h2>
+
+This section focuses on the description of binary (file) data formats. Please refer to the soil_sampling OpenAPI specifications for details on all other payload and parameter descriptions.
+
+<h2>6.1	Soil Carbon Estimate File Format</h2>
+
+Estimate data MUST be in GeoPackage (<a href="https://www.geopackage.org">https://www.geopackage.org</a>) format version 1.2 or newer.
+<pre>
++=========================================================+
+|                TABLE gpkg_contents                      |
++=====+=============+=====================================+
+| ROW | COLUMN      | VALUE                               |
++-----+-------------+-------------------------------------+
+|     | table_name  | "atlas"                             |
+|     +-------------+-------------------------------------+
+|     | data_type   | "attributes"                        |
++-----+-------------+-------------------------------------+
+</pre>
+All Atlas GeoPackage files MUST contain an attributes table named "atlas" with a single row and the following structure:
+<pre>
++============================+
+|     TABLE atlas            |
++================+===========+
+| COLUMN         | TYPE      |
++----------------+-----------+
+| id             | INTEGER   |
+| type           | TEXT      |
+| participant    | TEXT      |
+| format_version | TEXT      |
++----------------+-----------+
+</pre>
+and a single row:
+<pre>
++=========================================================+
+|                TABLE atlas                              |
++=====+================+==================================+
+| ROW | COLUMN         | VALUE                            |
++-----+----------------+----------------------------------+
+|     | type           | "soil_carbon"                    |
+|     +----------------+----------------------------------+
+|     | participant    | "&lt;atlas participant id&gt;"         |
+|  1  +----------------+----------------------------------+
+|     | application    | "..."                            |
+|     +----------------+----------------------------------+
+|     | format_version | "MAJOR.MINOR"                    |
++-----+----------------+----------------------------------+
+</pre>
+Services SHALL validate that the "atlas.participant" field matches the information attached to the authentication context in which the file is uploaded.
+
+If the GeoPackage was generated and uploaded by an Atlas service, then "atlas.application" SHOULD be "&lt;service name&gt;-&lt;service version&gt;", otherwise it MAY contain "&lt;application name&gt;-&lt;application version&gt;". In either case, no validation will be performed.
+
+The "atlas.format_version" field MUST be the version of the soil_sampling template that is targeted by the client uploading the file. GeoPackage files of a given type are guaranteed to be compatible (no breaking changes) for a same MAJOR version of "atlas.format_version".
+
+A soil carbon estimate GeoPackage MUST contain the following additional tables:
+<pre>
++=========================================================+
+|                TABLE gpkg_contents                      |
++=====+=============+=====================================+
+| ROW | COLUMN      | VALUE                               |
++-----+-------------+-------------------------------------+
+|                    ...                                  |
++-----+-------------+-------------------------------------+
+|     | table_name  | "soil_carbon"                       |
+|     +-------------+-------------------------------------+
+|     | data_type   | "2d-gridded-coverage|features"      |
++-----+-------------+-------------------------------------+
+|     | table_name  | "application_info"                  |
+|     +-------------+-------------------------------------+
+|     | data_type   | "attributes"                        |
++-----+-------------+-------------------------------------+
+</pre>
+If the data_type of the product table is "features", then the columns must be as follows:
+<pre>
++=========================================================+
+|                    TABLE soil_carbon                    |
++=====+=================+=================================+
+| ROW | COLUMN          | VALUE                           |
++-----+-----------------+---------------------------------+
+|     | id              | "INTEGER"                       |
+|     +-----------------+---------------------------------+
+|     | geometry        | "GeoPackage Geometry"           |
+|     +-----------------+---------------------------------+
+|     | amount          | "amount in kilogram (REAL)"     |
+|-----+-----------------+---------------------------------+
+</pre>
+Instead, if the data_type of the product table is "2d-gridded-coverage" then it must be defined as follows:
+<pre>
++=========================================================+
+|                    TABLE product                        |
++=====+=================+=================================+
+| ROW | COLUMN          | VALUE                           |
++-----+-----------------+---------------------------------+
+|     | id              | "INTEGER"                       |
+|     +-----------------+---------------------------------+
+|     | zoom_level      | "INTEGER"                       |
+|     +-----------------+---------------------------------+
+|     | tile_column     | "INTEGER"                       |
+|     +-----------------+---------------------------------+
+|     | tile_row        | "INTEGER"                       |
+|     +-----------------+---------------------------------+
+|     | tile_data       | "BLOB (TIFF)"                   |
+|-----+-----------------+---------------------------------+
+</pre>
+Where tile_data is a tiff blob holding Float32 values as per GeoPackage specifications (<a href="http://docs.opengeospatial.org/is/17-066r1/17-066r1.html#_storage_formats_and_grid_cell_values">http://docs.opengeospatial.org/is/17-066r1/17-066r1.html#_storage_formats_and_grid_cell_values</a>).
+<pre>
++============================+
+|  TABLE application_info    |
++================+===========+
+| COLUMN         | TYPE      |
++----------------+-----------+
+| id             | INTEGER   |
+| type           | TEXT      |
+| date           | DATETIME  |
+| info           | TEXT      |
++----------------+-----------+
+</pre>
+and a single row:
+<pre>
++=========================================================+
+|                TABLE estimate_info                      |
++=====+=============+=====================================+
+| ROW | COLUMN      | VALUE                               |
++-----+-------------+-------------------------------------+
+|     | type        | "soil_carbon"                       |
+|  1  +-------------+-------------------------------------+
+|     | date        | "yyyy-MM-ddTHH:mm:ssZ"              |
+|     +-------------+-------------------------------------+
+|     | info        | "&lt;estimate_info_json&gt;"              |
++-----+-------------+-------------------------------------+
+</pre>
+Soil carbon "estimate_info.info" is a JSON object serialized as a string, such as:
+<pre>
++-----------------------------------------------+
+| {                                             |
+|   "soil_carbon": {                            |
+|      "amount": &lt;amount_in_kg&gt;,                |
+|   }                                           |
+| }                                             |
++-----------------------------------------------+
+</pre>
+
+<h2>6 Access and Authentication</h2>
+
+Farmers MUST have an account setup on an estimator service in order to authenticate and access API endpoints. The service implementor is responsible for the creation of accounts; it is not covered in the service template specifications.
+
+Unless specifically documented in the OpenAPI specifications, all API calls must include credentials in form of Bearer authentication (also called token authentication). Clients can obtain an access token on behalf of their user from the service's authorization server (see ATLAS service pairing).
+
+Some of the information held by soil_sampling services may be considered sensitive from a GDPR perspective. The service's authorization server SHOULD request the client's end-user consent at service pairing time in order to deliver an access token.
+
+<h2>7 Dynamic Behaviour</h2>
+
+The purpose of the diagrams in this section is to illustrate communication patterns, more complex than plain request/response API calls, that involve several interactions and/or asynchronous behaviour. Even though a sequence diagram representation is used, the diagrams are by no means to be interpreted as UML Sequence Diagrams. Specifically, in the spirit of focusing on functional behaviour and readability, error handling is deliberately not covered in the diagrams.
+
+<h2>7.1 Estimate Preparation</h2>
+
+There are two methods for determining whether an estimate preparation has completed (successfully or unsuccessfully): by polling the estimate_info endpoint or by notification.
+
+<h2>7.1.1 Polling</h2>
+
+After requesting an estimate preparation, the client polls the estimate_info endpoint at regular intervals until the returned status is READY or FAILED.
+
+The status may be CONFIGURATION_REQUIRED which indicates that a user action is required on the user interface of the estimator. By convention, in case of CONFIGURATION_REQUIRED status, the service SHOULD return a browser URL to the location where a user can provide additional parameters (as required for a specific service implementation). It is the user interface of the ADIS originating the request to display an appropriate message to the end-user with a clickable link to the provided URL.
+
+<img src="doc/estimate_polling.png" style="width: 420px" />
+
+<h2>7.1.2 Notification</h2>
+
+If a notification URL was supplied on the prepare_estimate endpoint, it will be invoked by the estimator when the preparation status changes.
+
+<img src="doc/estimate_notification.png" style="width: 420px" />
+
+Estimators MUST invoke the notification URL supplied by the client with an HTTPS POST command. The payload will be identical to the one that would be returned by the estimate_info request.
+
+<h2>8.2 General Comments on Notifications</h2>
+
+Services must provide best efforts to deliver notifications. A notification is considered successful if the target returns an http result code 2XX.
+
+Errors may occur during notification delivery. Depending on the type of error, services must react in different ways:
+
+i) Network error - the connection to the client's host (from notification URL) cannot be established. The service MUST retry a certain number of times. The number of retries and possible backoff strategy is left at the discretion of the service implementer.
+
+ii) Server errors (5XX result code) - these errors are potentially transient. The same strategy as for Network errors SHOULD be applied.
+
+iii) Client errors (4XX result code) - typically when the notification URL is invalid, or the authentication is invalid/expired. 4XX errors should never be sent for transient client-side conditions and therefore services SHOULD NOT attempt retries.
+
+Upon an excessive number of errors, services MAY give up further notification attempts. In that case, clients can only retrieve completion information via polling.
+
+<h2>ANNEX 1 - Measurement Information</h2>
+
+<table>
+<tr style="font-weight: bold"><td width="70">code</td><td>Description</td><td width="20">Unit</td></tr>
+<tr ><td colspan="3">Lab Measurements</td></tr>
+<tr><td>clay</td><td>Percentage of clay</td><td>%</td></tr>
+<tr><td>silt</td><td>Percentage of silt</td><td>%</td></tr>
+<tr><td>sand</td><td>Percentage of sand</td><td>%</td></tr>
+<tr><td>humus</td><td>Percentage of humus</td><td>%</td></tr>
+<tr><td>CaCl2</td><td>pH (CaCl<sub>2</sub>) value</td><td></td></tr>
+<tr><td>N</td><td>Percentage of nitrogen (N)</td><td>%</td></tr>
+<tr><td>P2O5</td><td>Phosphorus (P<sub>2</sub>O<sub>5</sub>) content</td><td>mg/100g</td></tr>
+<tr><td>K2O</td><td>Potassium (K<sub>2</sub>O) content</td><td>mg/100g</td></tr>
+<tr><td>B</td><td>Boron (B) content</td><td>mg/kg</td></tr>
+<tr><td>Ca</td><td>Calcium (CaO) content</td><td>mg/100g</td></tr>
+<tr><td>Cu</td><td>Copper (Cu) content</td><td>mg/kg</td></tr>
+<tr><td>MgO</td><td>Magnesium (MgO) content</td><td>mg/100g</td></tr>
+<tr><td>Mn</td><td>Manganese (Mn) content</td><td>mg/kg</td></tr>
+<tr><td>Na</td><td>Sodium (Na) content</td><td>mg/kg</td></tr>
+<tr><td>S</td><td>Sulfur (S) content</td><td>mg/kg</td></tr>
+<tr><td>Zn</td><td>Zinc (Zn) content</td><td>mg/kg</td></tr>
+<tr><td>N_min</td><td>Nitrogen Mineralization</td><td>mg N/kg</td></tr>
+<tr><td>C/N</td><td>Carbon / Nitrogen ratio</td><td></td></tr>
+<tr><td>CEC</td><td>Cation Exchange Capacity</td><td>meq/100g</td></tr>
+<tr><td>soc</td><td>Percentage of soil organic carbon</td><td>%</td></tr>
+<tr><td>bulk_density</td><td>Bulk density of sample</td><td>g/cm<sup>3</sup></td></tr>
+<tr><td>weight_samples</td><td>Weight of received samples</td><td>g</td></tr>
+<tr><td>weight_dried_samples</td><td>Weight of dried samples</td><td>g</td></tr>
+
+<tr ><td colspan="3">Infield Measurements</td></tr>
+<tr><td>auger_diam</td><td>Auger diameter</td><td>%</td></tr>
+<tr><td>weight_samples</td><td>Weight of samples (total)</td><td>g</td></tr>
+<tr><td>weight_bagged_sample</td><td>Weight of samples (bagged amount)</td><td>g</td></tr>
+
+</table>
+</body>
+</html>

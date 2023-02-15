@@ -1,0 +1,278 @@
+{
+	"info": {
+		"_postman_id": "32e71ee2-e22d-4130-9888-78d93c128a26",
+		"name": "ATLAS fertilisation_advisor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "prepare_lime_advice",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var res = JSON.parse(responseBody);",
+							"if (res.urn) {",
+							"    pm.environment.set(\"advice_urn\", res.urn);",
+							"    pm.environment.set(\"advice_application_ref\", res.applications[0].application_ref);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"field_urn\": \"{{field_urn}}\",\n    \"nutrients\": [\n        \"CaCO3\"\n    ],\n    \"applications\": [\n        {\n            \"application_ref\": \"lime48\",\n            \"product\": {\n                \"name\": \"lime\",\n                \"unit\": \"kg\",\n                \"nutrients\": {\n                    \"CaCO3\": 480\n                }\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{fertilisation_advisor_url}}/advices",
+					"host": [
+						"{{fertilisation_advisor_url}}"
+					],
+					"path": [
+						"advices"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "prepare_potassium_advice",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var res = JSON.parse(responseBody);",
+							"if (res.urn) {",
+							"    pm.environment.set(\"advice_urn\", res.urn);",
+							"    pm.environment.set(\"advice_application_ref\", res.applications[0].application_ref);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"field_urn\": \"{{field_urn}}\",\n    \"nutrients\": [\n        \"K2O\"\n    ],\n    \"applications\": [\n        {\n            \"application_ref\": \"slurry\",\n            \"product\": {\n                \"name\": \"Cow slurry\",\n                \"unit\": \"l\",\n                \"nutrients\": {\n                    \"N\": 100,\n                    \"P2O5\": 50,\n                    \"K2O\": 30\n                }\n            }\n        },\n        {\n            \"application_ref\": \"potassium\",\n            \"product\": {\n                \"name\": \"K-rich product\",\n                \"unit\": \"kg\",\n                \"nutrients\": {\n                    \"N\": 7.2,\n                    \"P2O5\": 35.5,\n                    \"K2O\": 422\n                }\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{fertilisation_advisor_url}}/advices",
+					"host": [
+						"{{fertilisation_advisor_url}}"
+					],
+					"path": [
+						"advices"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "prepare_npk_advice",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var res = JSON.parse(responseBody);",
+							"if (res.urn) {",
+							"    pm.environment.set(\"advice_urn\", res.urn);",
+							"    pm.environment.set(\"advice_application_ref\", res.applications[0].application_ref);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"field_urn\": \"{{field_urn}}\",\n    \"nutrients\": [\n        \"N\",\n        \"P2O5\",\n        \"K2O\"\n    ],\n    \"applications\": [\n        {\n            \"application_ref\": \"slurry\",\n            \"product\": {\n                \"name\": \"Cow slurry\",\n                \"unit\": \"l\",\n                \"nutrients\": {\n                    \"N\": 100,\n                    \"P2O5\": 50,\n                    \"K2O\": 30\n                }\n            }\n        },\n        {\n            \"application_ref\": \"phosphorus\",\n            \"product\": {\n                \"name\": \"P-rich product\",\n                \"unit\": \"l\",\n                \"nutrients\": {\n                    \"N\": 15,\n                    \"P2O5\": 400.5,\n                    \"K2O\": 20\n                }\n            }\n        },\n        {\n            \"application_ref\": \"potassium\",\n            \"product\": {\n                \"name\": \"K-rich product\",\n                \"unit\": \"kg\",\n                \"nutrients\": {\n                    \"N\": 7.2,\n                    \"P2O5\": 35.5,\n                    \"K2O\": 422\n                }\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{fertilisation_advisor_url}}/advices",
+					"host": [
+						"{{fertilisation_advisor_url}}"
+					],
+					"path": [
+						"advices"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_advice",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var res = JSON.parse(responseBody);",
+							"if (res.applications?.length)",
+							"    pm.environment.set(\"advice_application_ref\", res.applications[0].application_ref);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{fertilisation_advisor_url}}/advices/{{advice_urn}}",
+					"host": [
+						"{{fertilisation_advisor_url}}"
+					],
+					"path": [
+						"advices",
+						"{{advice_urn}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete_advice",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{fertilisation_advisor_url}}/advices/{{advice_urn}}",
+					"host": [
+						"{{fertilisation_advisor_url}}"
+					],
+					"path": [
+						"advices",
+						"{{advice_urn}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get application ref",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var res = JSON.parse(responseBody);",
+							"if (res.application_map) {",
+							"    pm.collectionVariables.set(\"download_url\", res.application_map.download_url);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{fertilisation_advisor_url}}/advices/{{advice_urn}}/applications/{{advice_application_ref}}",
+					"host": [
+						"{{fertilisation_advisor_url}}"
+					],
+					"path": [
+						"advices",
+						"{{advice_urn}}",
+						"applications",
+						"{{advice_application_ref}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get application ref gpkg",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{download_url}}",
+					"host": [
+						"{{download_url}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{fertilisation_advisor_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "download_url",
+			"value": "",
+			"type": "default"
+		}
+	]
+}

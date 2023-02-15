@@ -1,0 +1,1026 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "ATLAS soil_sampling Service Template API",
+    "version": "0.0.1"
+  },
+  "externalDocs": {
+    "description": "Service Template Document",
+    "url": "https://htmlpreview.github.io/?https://github.com/atlasH2020-templates/soil_sampling/blob/v0/doc.html"
+  },
+  "servers": [
+    {
+      "url": "https://<domain>/<path>"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Order"
+    },
+    {
+      "name": "Sample"
+    }
+  ],
+  "paths": {
+    "/orders": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Order"
+        ],
+        "summary": "Order a soil sampling (order)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "parameters": [
+        {
+          "description": "the id of an order",
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "example": "1e371d44-59ae-4af1-9570-9743dd3ba613"
+        }
+      ],
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Order"
+        ],
+        "summary": "Retrieve an order info (order_info)",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Order"
+        ],
+        "summary": "Cancel an existing order (cancel_order)",
+        "responses": {
+          "204": {
+            "description": "successful operation"
+          },
+          "401": {
+            "description": "Invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sampling/{id}": {
+      "parameters": [
+        {
+          "description": "the id of an order",
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "example": "1e371d44-59ae-4af1-9570-9743dd3ba613"
+        }
+      ],
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Sample"
+        ],
+        "summary": "Retrieve sampler information for an order (sampler_info)",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SamplerInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Sample"
+        ],
+        "summary": "Sampling completion (sampling_completion)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SamplingResults"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "successful operation"
+          },
+          "401": {
+            "description": "Invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Sample"
+        ],
+        "summary": "Cancel an a soil sampling activity, in case of force majeure (cancel_sampling)",
+        "responses": {
+          "204": {
+            "description": "successful operation"
+          },
+          "401": {
+            "description": "Invalid or missing credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FieldURN": {
+        "type": "string",
+        "pattern": "^urn:[a-z][a-z0-9_.\\-]*:[\\w-.]+",
+        "description": "Uniform resource name of a field with the syntax `urn:<service_id>:<internal_id>`. <service_id> must be the id of a valid and active ATLAS service"
+      },
+      "Order": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SamplerInfo"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "lab_measurements": {
+                "$ref": "#/components/schemas/LabMeasurements"
+              },
+              "notification_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "When present, this URL will be invoked with POST containing a 'Notification' body (see components) when applicable. Note that the notification_url MUST NOT require authentication and therefore MUST not be easily guessable (i.e., include a random parameter)."
+              }
+            }
+          }
+        ],
+        "required": [
+          "fields",
+          "lab_measurements"
+        ],
+        "example": {
+          "fields": [
+            {
+              "field_urn": "urn:com.agricircle.atlas.field_data:fdbe6f55-6179-4b88-9177-4afbed33adac",
+              "sampling_zones": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_1"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_2"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_3"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  }
+                ]
+              },
+              "stitches": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_1"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_2"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_3"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "lab_measurements": [
+            "K2O",
+            "P2O5",
+            "K2O",
+            "soc"
+          ],
+          "infield_measurements": [
+            "auger_diameter"
+          ]
+        }
+      },
+      "OrderInfo": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SamplerInfo"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "$ref": "#/components/schemas/OrderStatus"
+              },
+              "user_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "A service's proprietary UI url where the user may navigate to view additional information or be prompted for additional actions to deal with the error. A well-behaved FMIS will present his users with a visual indication and the means to click on this link when this attribute is present."
+              },
+              "lab_measurements": {
+                "$ref": "#/components/schemas/LabMeasurements"
+              }
+            }
+          }
+        ],
+        "required": [
+          "id",
+          "fields",
+          "status",
+          "lab_measurements"
+        ],
+        "example": {
+          "id": "1e371d44-59ae-4af1-9570-9743dd3ba613",
+          "fields": [
+            {
+              "field_urn": "urn:com.agricircle.atlas.field_data:fdbe6f55-6179-4b88-9177-4afbed33adac",
+              "sampling_zones": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_1"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_2"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_3"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  }
+                ]
+              },
+              "stitches": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_1"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_2"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_3"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "lab_measurements": [
+            "K2O",
+            "P2O5",
+            "K2O",
+            "soc"
+          ],
+          "infield_measurements": [
+            "auger_diameter"
+          ],
+          "status": "PENDING"
+        }
+      },
+      "SamplerInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "sampling_depth": {
+            "description": "Depth in centimeter of the sampling.",
+            "type": "number"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_urn": {
+                  "$ref": "#/components/schemas/FieldURN"
+                },
+                "sampling_zones": {
+                  "type": "object",
+                  "description": "GeoJSON FeatureCollection of Polygon features. Note that the 'id' property for each zone feature is mandatory and must be unique within the order."
+                },
+                "stitches": {
+                  "type": "object",
+                  "description": "GeoJSON FeatureCollection of MultiPoint features. Each multipoint corresponds to a sampling zone"
+                }
+              },
+              "required": [
+                "id",
+                "field_urn",
+                "sampling_zones",
+                "stitches"
+              ]
+            }
+          },
+          "infield_measurements": {
+            "$ref": "#/components/schemas/InfieldMeasurements"
+          },
+          "additional_info_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional browser url (provided by the orchestrating ADIS) that can be used to provide the sampler with additional data or instructions. These URLs MUST make it possible to identify the original order and MUST be signed to avoid forgery. Authentication MUST NOT be required to access such a URL."
+          }
+        },
+        "example": {
+          "id": "1e371d44-59ae-4af1-9570-9743dd3ba613",
+          "fields": [
+            {
+              "field_urn": "urn:com.agricircle.atlas.field_data:fdbe6f55-6179-4b88-9177-4afbed33adac",
+              "sampling_zones": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_1"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_2"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "id": "XHHW_3"
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                      ]
+                    }
+                  }
+                ]
+              },
+              "stitches": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_1"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_2"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "name": "Stitches for XHHW_3"
+                    },
+                    "geometry": {
+                      "type": "MultiPoint",
+                      "coordinates": [
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "infield_measurements": [
+            "auger_diameter"
+          ]
+        }
+      },
+      "LabMeasurements": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LabMeasurement"
+        }
+      },
+      "LabMeasurement": {
+        "description": "Standardized soil properties to be analyzed in a laboratory.",
+        "type": "string",
+        "enum": [
+          "clay",
+          "silt",
+          "sand",
+          "humus",
+          "CaCO3",
+          "K2O",
+          "P2O5",
+          "N",
+          "CaCl2",
+          "N",
+          "B",
+          "CaO",
+          "Cu",
+          "MgO",
+          "Mn",
+          "Na",
+          "S",
+          "Zn",
+          "N_min",
+          "C/N",
+          "CEC",
+          "soc",
+          "bulk_density",
+          "weight_sample",
+          "weight_dried_sample"
+        ]
+      },
+      "LabMeasurementMethod": {
+        "type": "string",
+        "enum": [
+          "H2O",
+          "CaCl2",
+          "CAL",
+          "Mehlich3"
+        ]
+      },
+      "InfieldMeasurements": {
+        "description": "Standardized measurements to be taken and recorded by samplers during the soil sampling process.",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InfieldMeasurement"
+        }
+      },
+      "InfieldMeasurement": {
+        "type": "string",
+        "enum": [
+          "auger_diameter",
+          "weight_bagged_sample",
+          "weight_collected_sample"
+        ]
+      },
+      "SamplingResults": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_urn": {
+                  "$ref": "#/components/schemas/FieldURN"
+                },
+                "zones": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "infield_results": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "measurement": {
+                              "$ref": "#/components/schemas/InfieldMeasurement"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "field_urn",
+                "zones"
+              ]
+            }
+          }
+        }
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "SOIL_SAMPLING_IN_PROGRESS",
+          "LAB_ANALYSIS_IN_PROGRESS",
+          "CONFIGURATION_REQUIRED",
+          "READY",
+          "FAILED"
+        ],
+        "description": "status of an order"
+      },
+      "OrderResults": {
+        "type": "object",
+        "properties": {
+          "sampling_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 date/time at which the soil samples collection was completed."
+          },
+          "analysis_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 date/time at which the analysis was completed."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_urn": {
+                  "$ref": "#/components/schemas/FieldURN"
+                },
+                "zones": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Each id in the 'result' zones MUST have a corresponding if in the order zones."
+                      },
+                      "lab_results": {
+                        "description": "Measurements resulting from laboratory analysis of samples.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "measurement": {
+                              "$ref": "#/components/schemas/LabMeasurement"
+                            },
+                            "measurement_method": {
+                              "$ref": "#/components/schemas/LabMeasurementMethod"
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "Measured value. Lab measurement values MUST be in a well-known unit that is described in the soil_sampling service template document."
+                            }
+                          }
+                        }
+                      },
+                      "infield_results": {
+                        "description": "Measurements resulting from samplers during the sampling process.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "measurement": {
+                              "$ref": "#/components/schemas/InfieldMeasurement"
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "Measured value. Infield measurement values MUST be in a well-known unit that is described in the soil_sampling service template document."
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "lab_results"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "field_urn",
+                "zones"
+              ]
+            }
+          }
+        },
+        "required": [
+          "sampling_date",
+          "analysis_date",
+          "fields"
+        ]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          }
+        },
+        "required": [
+          "order_id",
+          "status"
+        ]
+      },
+      "DetailedError": {
+        "type": "object",
+        "description": "This defines the structure of an error payload when one is present. Actual messages and additional error information content may change from one implementation to another",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "error description"
+          },
+          "status": {
+            "type": "string",
+            "format": "number",
+            "description": "http error code"
+          },
+          "error_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "A service's proprietary UI url where the user may navigate to view additional information or be prompted for additional actions to deal with the error. A well-behaved FMIS will present his users with a visual indication and the means to click on this link when this attribute is present."
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional detailed information"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "example": {
+          "message": "this is a sample error message",
+          "errors": [
+            "this is an example of additional error information"
+          ]
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
