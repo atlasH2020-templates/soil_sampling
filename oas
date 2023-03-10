@@ -19,7 +19,7 @@
       "description": "Customer API"
     },
     {
-      "name": "Samplings",
+      "name": "Sampling Jobs",
       "description": "Soil Sampler API"
     }
   ],
@@ -36,6 +36,7 @@
         ],
         "summary": "Order soil analyses (order).",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -224,55 +225,35 @@
         "tags": [
           "Orders"
         ],
-        "summary": "Retrieve an order status/results (order_results).",
+        "summary": "Retrieve an order status (order_status).",
         "responses": {
           "200": {
             "description": "Successful operation.",
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "PENDING",
-                            "SOIL_SAMPLING_IN_PROGRESS",
-                            "LAB_ANALYSIS_IN_PROGRESS",
-                            "CONFIGURATION_REQUIRED",
-                            "FAILED"
-                          ],
-                          "description": "Status of an order."
-                        }
-                      }
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/OrderStatus"
                     },
-                    {
-                      "$ref": "#/components/schemas/LabResults"
+                    "info": {
+                      "type": "string",
+                      "description": "Human-readable info"
+                    },
+                    "user_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "A service's proprietary UI url where the user may navigate to view additional information or be prompted for additional inputs. A well-behaved FMIS will present his users with a visual indication and the means to click on this link when this attribute is present."
                     }
+                  },
+                  "required": [
+                    "status"
                   ]
                 },
                 "example": {
-                  "id": "1e371d44-59ae-4af1-9570-9743dd3ba613",
-                  "status": "READY",
-                  "sampling_date": "2023-03-01T17:20:43.413Z",
-                  "analysis_date": "2023-03-07T17:20:43.413Z",
-                  "fields": [
-                    {
-                      "field_urn": "urn:com.agricircle.atlas.field_data:fdbe6f55-6179-4b88-9177-4afbed33adac",
-                      "zones": [
-                        {
-                          "zone_id": "",
-                          "lab_results": [],
-                          "infield_results": []
-                        }
-                      ]
-                    }
-                  ]
+                  "status": "LAB_ANALYSIS_IN_PROGRESS",
+                  "info": "Sent to lab on 2023-02-12"
                 }
               }
             }
@@ -356,7 +337,18 @@
         }
       }
     },
-    "/samplings": {
+    "/orders/{id}/results": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "example": "1e371d44-59ae-4af1-9570-9743dd3ba613"
+        }
+      ],
       "get": {
         "security": [
           {
@@ -364,9 +356,80 @@
           }
         ],
         "tags": [
-          "Samplings"
+          "Orders"
         ],
-        "summary": "Fetch soil samplings to be performed (sampling_jobs).",
+        "summary": "Retrieve an order's results (order_results).",
+        "responses": {
+          "200": {
+            "description": "Successful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabResults"
+                },
+                "example": {
+                  "sampling_date": "2023-03-01T17:20:43.413Z",
+                  "analysis_date": "2023-03-07T17:20:43.413Z",
+                  "fields": [
+                    {
+                      "field_urn": "urn:com.agricircle.atlas.field_data:fdbe6f55-6179-4b88-9177-4afbed33adac",
+                      "zones": [
+                        {
+                          "zone_id": "",
+                          "lab_results": [],
+                          "infield_results": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sampling_jobs": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Sampling Jobs"
+        ],
+        "summary": "Fetch soil sampling jobs to be performed (sampling_jobs).",
         "responses": {
           "200": {
             "description": "Successful operation.",
@@ -376,15 +439,19 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/SamplingJobSummary"
-                  },
-                  "example": [
-                    {
-                      "id": "1e371d44-59ae-4af1-9570-9743dd3ba613",
-                      "date": "2022-08-15T14:32:28Z",
-                      "customer_name": "ACME Corp."
-                    }
-                  ]
-                }
+                  }
+                },
+                "example": [
+                  {
+                    "id": "1e371d44-59ae-4af1-9570-9743dd3ba613",
+                    "status": "PENDING",
+                    "date": "2022-08-15T14:32:28Z",
+                    "customer_name": "ACME Corp.",
+                    "customer_address": "Kastelhof 4242, 8155 Niederhasli",
+                    "total_zones": 15,
+                    "total_stitches": 300
+                  }
+                ]
               }
             }
           },
@@ -431,7 +498,81 @@
         }
       }
     },
-    "/samplings/{id}": {
+    "/sampling_jobs/{id}": {
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Sampling Jobs"
+        ],
+        "summary": "Cancel an a soil sampling activity (started or not), in case of force majeure (cancel_sampling_job). A canceled job will no longer be accessible to the soil sampler.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "1e371d44-59ae-4af1-9570-9743dd3ba613"
+          }
+        ],
+        "requestBody": {
+          "description": "An optional explanation for the cancellation.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful operation."
+          },
+          "401": {
+            "description": "Invalid or missing credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sampling_jobs/{id}/acquire": {
       "parameters": [
         {
           "name": "id",
@@ -443,16 +584,16 @@
           "example": "1e371d44-59ae-4af1-9570-9743dd3ba613"
         }
       ],
-      "get": {
+      "post": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
         "tags": [
-          "Samplings"
+          "Sampling Jobs"
         ],
-        "summary": "Retrieve sampling job details (sampling_info).",
+        "summary": "Start sampling job (acquire_sampling_job).",
         "responses": {
           "200": {
             "description": "Successful operation.",
@@ -590,6 +731,54 @@
           }
         }
       },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Sampling Jobs"
+        ],
+        "summary": "Release a previously acquired sampling job, in case of postponement (release_sampling_job).",
+        "responses": {
+          "204": {
+            "description": "Successful operation."
+          },
+          "401": {
+            "description": "Invalid or missing credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sampling_jobs/{id}/complete": {
       "post": {
         "security": [
           {
@@ -597,10 +786,22 @@
           }
         ],
         "tags": [
-          "Samplings"
+          "Sampling Jobs"
         ],
-        "summary": "Complete a soil sampling activity (sampling_completion).",
+        "summary": "Complete a soil sampling activity (complete_sampling_job).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "1e371d44-59ae-4af1-9570-9743dd3ba613"
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -659,54 +860,16 @@
           }
         },
         "responses": {
-          "204": {
-            "description": "Successful operation."
-          },
-          "401": {
-            "description": "Invalid or missing credentials.",
+          "200": {
+            "description": "Returns a printable shipping list document (text, pdf, xlsx, docx, ...) containing the shipping address and the description of the bags to be shipped.",
             "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DetailedError"
-                }
+              "text": {
+              },
+              "application/pdf": {
+              },
+              "<xlsx,docx,...>": {
               }
             }
-          },
-          "404": {
-            "description": "Not found.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DetailedError"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DetailedError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "tags": [
-          "Samplings"
-        ],
-        "summary": "Cancel an a soil sampling activity, in case of force majeure (cancel_sampling).",
-        "responses": {
-          "204": {
-            "description": "Successful operation."
           },
           "401": {
             "description": "Invalid or missing credentials.",
@@ -850,6 +1013,57 @@
         ]
       },
       "SamplingJobSummary": {
+        "description": "Besides the id and status, all the other attributes are provided for informational purposes to enable the sampler to prioritize his work without having to acquire the job to get details",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACQUIRED"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 date/time at which the order was placed."
+          },
+          "customer_name": {
+            "type": "string"
+          },
+          "customer_address": {
+            "type": "string"
+          },
+          "total_zones": {
+            "type": "number",
+            "description": "The sum of all sampling zones on all fields to be sampled within a job.."
+          },
+          "total_stitches": {
+            "type": "number",
+            "description": "The sum of all stitches for all zones on all fields to be sampled within a job."
+          },
+          "infield_measurements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfieldMeasurement"
+            },
+            "description": "In field measurements requested on at least some of the fields within a job."
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "date",
+          "customer_name",
+          "customer_address",
+          "total_zones",
+          "total_stitches"
+        ]
+      },
+      "SamplingJob": {
         "type": "object",
         "properties": {
           "id": {
@@ -858,107 +1072,88 @@
           "date": {
             "type": "string",
             "format": "date-time",
-            "description": "ISO 8601 date/time at which the order was places."
+            "description": "ISO 8601 date/time at which the order was placed."
           },
           "customer_name": {
             "type": "string"
           },
           "customer_address": {
             "type": "string"
+          },
+          "instructions": {
+            "type": "string",
+            "description": "Additional human-readable information. Could be used to provide details about bagging method/labelling, shipping details, etc."
+          },
+          "additional_info_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional browser url (provided by the orchestrating ADIS) that can be used to provide the sampler with additional data or instructions for the sampling process. These URLs are signed to avoid forgery, and require no additional HTTP Authentication as they are 'unguessable'."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_urn": {
+                  "$ref": "#/components/schemas/FieldURN"
+                },
+                "field_name": {
+                  "type": "string"
+                },
+                "field_boundaries": {
+                  "description": "GeoJSON Polygon.",
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "pattern": "^Polygon$"
+                    },
+                    "coordinates": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  }
+                },
+                "sampling_depth": {
+                  "description": "Depth in centimeter of the sampling.",
+                  "type": "number"
+                },
+                "sampling_zones": {
+                  "type": "object",
+                  "description": "GeoJSON FeatureCollection of Polygon features. Note that the 'id' property for each zone feature is mandatory and must be unique within the order. An optional bag_id property may be supplied for pre-labeled bags."
+                },
+                "stitches": {
+                  "type": "object",
+                  "description": "GeoJSON FeatureCollection of MultiPoint features. Each multipoint corresponds to a sampling zone."
+                },
+                "infield_measurements": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InfieldMeasurement"
+                  }
+                }
+              },
+              "required": [
+                "field_urn",
+                "field_name",
+                "field_boundaries",
+                "sampling_depth",
+                "sampling_zones",
+                "stitches"
+              ]
+            }
           }
         },
         "required": [
           "id",
-          "date",
-          "customer_name"
-        ]
-      },
-      "SamplingJob": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/SamplingJobSummary"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "additional_info_url": {
-                "type": "string",
-                "format": "uri",
-                "description": "Optional browser url (provided by the orchestrating ADIS) that can be used to provide the sampler with additional data or instructions. These URLs MUST make it possible to identify the original order and MUST be signed to avoid forgery. Authentication MUST NOT be required to access such a URL."
-              },
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_urn": {
-                      "$ref": "#/components/schemas/FieldURN"
-                    },
-                    "field_name": {
-                      "type": "string"
-                    },
-                    "field_boundaries": {
-                      "description": "GeoJSON Polygon.",
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "pattern": "^Polygon$"
-                        },
-                        "coordinates": {
-                          "type": "array",
-                          "items": {}
-                        }
-                      }
-                    },
-                    "sampling_depth": {
-                      "description": "Depth in centimeter of the sampling.",
-                      "type": "number"
-                    },
-                    "sampling_zones": {
-                      "type": "object",
-                      "description": "GeoJSON FeatureCollection of Polygon features. Note that the 'id' property for each zone feature is mandatory and must be unique within the order. An optional bag_id property may be supplied for pre-labeled bags."
-                    },
-                    "stitches": {
-                      "type": "object",
-                      "description": "GeoJSON FeatureCollection of MultiPoint features. Each multipoint corresponds to a sampling zone."
-                    },
-                    "infield_measurements": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/InfieldMeasurement"
-                      }
-                    }
-                  },
-                  "required": [
-                    "field_urn",
-                    "field_name",
-                    "field_boundaries",
-                    "sampling_depth",
-                    "sampling_zones",
-                    "stitches"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "id",
-              "customer_name",
-              "fields"
-            ]
-          }
+          "customer_name",
+          "customer_address",
+          "fields"
         ]
       },
       "LabResults": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "pattern": "^READY$"
-          },
           "sampling_date": {
             "type": "string",
             "format": "date-time",
@@ -1029,8 +1224,7 @@
                       }
                     },
                     "required": [
-                      "id",
-                      "lab_results"
+                      "id"
                     ]
                   }
                 }
@@ -1043,9 +1237,22 @@
           }
         },
         "required": [
-          "id",
-          "status"
+          "sampling_date",
+          "analysis_date",
+          "fields"
         ]
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "SOIL_SAMPLING_IN_PROGRESS",
+          "LAB_ANALYSIS_IN_PROGRESS",
+          "CONFIGURATION_REQUIRED",
+          "READY",
+          "FAILED"
+        ],
+        "description": "Status of an order."
       },
       "Notification": {
         "type": "object",
