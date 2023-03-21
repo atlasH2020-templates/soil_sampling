@@ -20,7 +20,7 @@ Author(s)                            M. Caballero (AgriCircle AG)
 <div style="margin-left: -22px;">
 Abstract
 
-This document describes the specifications for soil_sampling services whose purpose is provide lab measurements for soil samples on a field.
+This document describes the specifications for soil_sampling services whose purpose is support the soil sampling process: customer order -> sampling & bagging -> laboratory analysis -> results to customer.
 </div>
 <h2>1 Introduction</h2>
 
@@ -40,12 +40,11 @@ A thorough understanding in the following is required for
 both service consumers or service provider implementors:
 <pre>
     - GeoJSON specifications (<a href="https://geojson.org/">https://geojson.org/</a>)
-    - GeoPackage specifications (<a href="https://www.geopackage.org/">https://www.geopackage.org/</a>)
 </pre>
 
 <h2>4 soil_sampling Usage Scenarios</h2>
 
-the soil_sampling service template standardizes the means by which an ADIS requests a soil sampling campaign to be carried out, the soil properties the samples should be analyzed for, and the format of the analysis results.
+the soil_sampling service template standardizes the means by which customers may obtain information about the soil on their fields. It recognizes three main actors: the customer (e.g. farmer, farmer advisor), the soil sampler, the laboratory, as well as an intermediary who operates the soil_sampling services and manages the necessary out of band interactions between these actors.
 
 <img src="doc/soil_sampling_process.png" style="width: 420px" />
 
@@ -62,9 +61,10 @@ This section provides a very high-level summary of the soil_sampling API:
       Cancel order
     Sampler API
       List sampling jobs
-      Get sampling job details
+      Renounce sampling job
+      Acquire sampling job
+      Release sampling job
       Complete sampling job
-      Cancel sampling job
 </pre>
 Implementations of soil_sampling may require more parameters that are not included in the API. Such implementations MAY provide end-user configuration and management tools in a proprietary user interface.
 
@@ -85,12 +85,14 @@ soil_sampling services are not required to handle intense traffic from a single 
 
 <h2>5.1 Customer API Endpoints</h2>
 
+These endpoints are designed for customers such as farmers or farmers advisor (via an ADIS). The management of customers and the contractual details are out of scope of the soil_sampling service template and must be managed as needed by each implementation.
+
 <h2>5.1.1 Submit Order</h2>
 
 This endpoint is used to order a soil sampling on one or more fields.
 <pre>
 +--------------------------------------------+
-| order                                      |
+| submit_order                               |
 +-------------+------------------------------+
 |      Inputs | customer info, fields(zones, |
 |             | stitches,measurements, ...)  |
@@ -111,14 +113,15 @@ This function returns the status about a soil sampling order.
 +-------------+------------------------------+
 |      Inputs | order id                     |
 +-------------+------------------------------+
-|     Outputs | order status, info           |
+|     Outputs | order status                 |
 +-------------+------------------------------+
 </pre>
-The order status about the order which is one of PENDING, SOIL_SAMPLING_IN_PROGRESS, LAB_ANALYSIS_IN_PROGRESS, CONFIGURATION_REQUIRED, READY, FAILED. The CONFIGURATION_REQUIRED status indicates that the end-user is required to perform some manual configuration on the service’s proprietary UI in order to enable the completion of the requested soil sampling.
+The order status is one of PENDING, ASSIGNED_TO_SAMPLER, SOIL_SAMPLING_IN_PROGRESS, LAB_ANALYSIS_IN_PROGRESS, CONFIGURATION_REQUIRED, READY, FAILED. A CONFIGURATION_REQUIRED status indicates that the end-user is required to perform some manual configuration on the service’s proprietary UI in order to enable the completion of the requested soil sampling; in such case a configuration_url attribute SHOULD be returned along with the status.
 
 <h2>5.1.3 Get Order Results</h2>
 
-This function returns the results for a soil sampling order. It will return an error 404 if the order is not in READY state.
+This function returns the results for a soil sampling order. An HTTP error 422 SHOULD be generated if the status of the order is different from READY.
+
 <pre>
 +--------------------------------------------+
 | order_results                              |
@@ -131,23 +134,25 @@ This function returns the results for a soil sampling order. It will return an e
 
 <h2>5.1.4 Cancel Order</h2>
 
-This endpoint cancels a soil sampling order. A cancellation may be rejected; the conditions under which a job may be canceled are up to the service provider and his service agreement.
+This endpoint cancels a soil sampling order. A soil_sampling service may reject a cancellation with HTTP error 422; the conditions under which a job may be canceled are up to the service provider and his service agreement.
 <pre>
 +--------------------------------------------+
 | cancel_order                               |
 +-------------+------------------------------+
-|      Inputs | order id                   |
+|      Inputs | order id                     |
 +-------------+------------------------------+
 |     Outputs | -                            |
 +-------------+------------------------------+
 </pre>
-Invoking this endpoint causes the order status to become FAILED. If an order that is not yet in READY state is cancelled and if a notification URL was provided in send_order, a notification MUST be dispatched.
+Invoking this endpoint causes the order status to become FAILED. If an order whose status is not yet in READY is cancelled and if a notification URL was provided in submit_order, a notification MUST be dispatched.
 
 <h2>5.2 Sampler API Endpoints</h2>
 
+These endpoints are designed for soil samplers (via an ADIS). The management of soil sampler, contractual details, and the means by which orders are assigned to soil samplers are out of scope of the soil_sampling service template and must be managed as needed by each implementation.
+
 <h2>5.2.1 List Sampling Jobs</h2>
 
-This endpoint is used list all the outstanding jobs assigned to the soil sampler. Sampling jobs will be removed from this list if they are completed or canceled. Implementations may have additional (proprietary) conditions allowing them to unilaterally remove a sampling job from the list.
+This endpoint is used list all the outstanding jobs assigned to the soil sampler. Implementations may have additional (proprietary) conditions allowing them to unilaterally remove a sampling job from the list.
 <pre>
 +--------------------------------------------+
 | sampling_jobs                              |
@@ -158,9 +163,11 @@ This endpoint is used list all the outstanding jobs assigned to the soil sampler
 +-------------+------------------------------+
 </pre>
 
+Only jobs with status PENDING or ACQUIRED will be returned in the list.
+
 <h2>5.2.2 Acquire Sampling Job</h2>
 
-This endpoint is invoked when the soil sampler is ready to go and carry out the task. As a result, the full details for the sampling job to be carried out are returned. It is expected that, when acquired, the sampling job will be carried out without delay.
+This endpoint is invoked when the soil sampler is ready to go and carry out the task. As a result, the full details for the sampling job to be carried out are returned. It is expected that, when acquired, the sampling job will be carried out without delay. An HTTP error 422 SHOULD be generated if the status of the job is different from PENDING.
 <pre>
 +--------------------------------------------+
 | acquire_sampling_job                       |
@@ -170,10 +177,11 @@ This endpoint is invoked when the soil sampler is ready to go and carry out the 
 |     Outputs | full details of sampling job |
 +-------------+------------------------------+
 </pre>
+When successful, the job's status MUST be set to ACQUIRED.
 
 <h2>5.2.3 Release Sampling Job</h2>
 
-This endpoint is invoked if, for some reason, execution of an acquired soil sampling job must be postponed by the soil sampler. It may be re-acquired at a later time.
+This endpoint is invoked if, for some reason, execution of an acquired soil sampling job must be postponed by the soil sampler. It may be re-acquired at a later time. An HTTP error 422 should be generated if the status of the job is different from ACQUIRED.
 <pre>
 +--------------------------------------------+
 | release_sampling_job                       |
@@ -183,27 +191,30 @@ This endpoint is invoked if, for some reason, execution of an acquired soil samp
 |     Outputs | -                            |
 +-------------+------------------------------+
 </pre>
+When successful, the job's status MUST be reset to PENDING.
 
 <h2>5.2.4 Complete Sampling Job</h2>
 
-This endpoint must be invoked by the soil sampler when all the sampling bags for an order have been collected. It may only be invoked on a soil sampling job that has previously been acquired.
+This endpoint must be invoked by the soil sampler when all the sampling bags for an order have been collected. An error 422 SHOULD be generated if the status of the job is different from ACQUIRED.
 <pre>
 +--------------------------------------------+
 | complete_sampling_job                      |
 +-------------+------------------------------+
-|      Inputs | job id, bag information      |
+|      Inputs | job id, bags information     |
 +-------------+------------------------------+
 |     Outputs | Printable shipping document  |
 +-------------+------------------------------+
 </pre>
-The shipping document will include the shipping address to which the sampler must send the bags, along with the shipping document itself.
+The shipping document must include the shipping address to which the sampler must send the bags, along with the shipping document itself.
 
-<h2>5.2.5 Cancel Sampling Job</h2>
+When successful, the job's status MUST be set to COMPLETED.
 
-A soil sampler may invoke this endpoint when he is not able to carry out a soil sampling job; cancelled jobs can no longer be accessed by the sampler. It is up to the provider (implementer) to re-allocate the job to a different soil sampler or cancel the customer's order.
+<h2>5.2.5 Renounce Sampling Job</h2>
+
+A soil sampler may invoke this endpoint when he is not able to carry out a soil sampling job; cancelled jobs can no longer be accessed by the sampler. It is up to the provider (implementer) to re-allocate the job to a different soil sampler or cancel the customer's order. An error 422 SHOULD be generated if the status of the job is different from PENDING.
 <pre>
 +--------------------------------------------+
-| cancel_sampling_job                        |
+| renounce_sampling_job                      |
 +-------------+------------------------------+
 |      Inputs | job id, optional reason      |
 +-------------+------------------------------+
@@ -211,149 +222,7 @@ A soil sampler may invoke this endpoint when he is not able to carry out a soil 
 +-------------+------------------------------+
 </pre>
 
-
-<h2>6 Data Formats</h2>
-
-This section focuses on the description of binary (file) data formats. Please refer to the soil_sampling OpenAPI specifications for details on all other payload and parameter descriptions.
-
-<h2>6.1	Soil Carbon Estimate File Format</h2>
-
-Estimate data MUST be in GeoPackage (<a href="https://www.geopackage.org">https://www.geopackage.org</a>) format version 1.2 or newer.
-<pre>
-+=========================================================+
-|                TABLE gpkg_contents                      |
-+=====+=============+=====================================+
-| ROW | COLUMN      | VALUE                               |
-+-----+-------------+-------------------------------------+
-|     | table_name  | "atlas"                             |
-|     +-------------+-------------------------------------+
-|     | data_type   | "attributes"                        |
-+-----+-------------+-------------------------------------+
-</pre>
-All Atlas GeoPackage files MUST contain an attributes table named "atlas" with a single row and the following structure:
-<pre>
-+============================+
-|     TABLE atlas            |
-+================+===========+
-| COLUMN         | TYPE      |
-+----------------+-----------+
-| id             | INTEGER   |
-| type           | TEXT      |
-| participant    | TEXT      |
-| format_version | TEXT      |
-+----------------+-----------+
-</pre>
-and a single row:
-<pre>
-+=========================================================+
-|                TABLE atlas                              |
-+=====+================+==================================+
-| ROW | COLUMN         | VALUE                            |
-+-----+----------------+----------------------------------+
-|     | type           | "soil_carbon"                    |
-|     +----------------+----------------------------------+
-|     | participant    | "&lt;atlas participant id&gt;"         |
-|  1  +----------------+----------------------------------+
-|     | application    | "..."                            |
-|     +----------------+----------------------------------+
-|     | format_version | "MAJOR.MINOR"                    |
-+-----+----------------+----------------------------------+
-</pre>
-Services SHALL validate that the "atlas.participant" field matches the information attached to the authentication context in which the file is uploaded.
-
-If the GeoPackage was generated and uploaded by an Atlas service, then "atlas.application" SHOULD be "&lt;service name&gt;-&lt;service version&gt;", otherwise it MAY contain "&lt;application name&gt;-&lt;application version&gt;". In either case, no validation will be performed.
-
-The "atlas.format_version" field MUST be the version of the soil_sampling template that is targeted by the client uploading the file. GeoPackage files of a given type are guaranteed to be compatible (no breaking changes) for a same MAJOR version of "atlas.format_version".
-
-A soil carbon estimate GeoPackage MUST contain the following additional tables:
-<pre>
-+=========================================================+
-|                TABLE gpkg_contents                      |
-+=====+=============+=====================================+
-| ROW | COLUMN      | VALUE                               |
-+-----+-------------+-------------------------------------+
-|                    ...                                  |
-+-----+-------------+-------------------------------------+
-|     | table_name  | "soil_carbon"                       |
-|     +-------------+-------------------------------------+
-|     | data_type   | "2d-gridded-coverage|features"      |
-+-----+-------------+-------------------------------------+
-|     | table_name  | "application_info"                  |
-|     +-------------+-------------------------------------+
-|     | data_type   | "attributes"                        |
-+-----+-------------+-------------------------------------+
-</pre>
-If the data_type of the product table is "features", then the columns must be as follows:
-<pre>
-+=========================================================+
-|                    TABLE soil_carbon                    |
-+=====+=================+=================================+
-| ROW | COLUMN          | VALUE                           |
-+-----+-----------------+---------------------------------+
-|     | id              | "INTEGER"                       |
-|     +-----------------+---------------------------------+
-|     | geometry        | "GeoPackage Geometry"           |
-|     +-----------------+---------------------------------+
-|     | amount          | "amount in kilogram (REAL)"     |
-|-----+-----------------+---------------------------------+
-</pre>
-Instead, if the data_type of the product table is "2d-gridded-coverage" then it must be defined as follows:
-<pre>
-+=========================================================+
-|                    TABLE product                        |
-+=====+=================+=================================+
-| ROW | COLUMN          | VALUE                           |
-+-----+-----------------+---------------------------------+
-|     | id              | "INTEGER"                       |
-|     +-----------------+---------------------------------+
-|     | zoom_level      | "INTEGER"                       |
-|     +-----------------+---------------------------------+
-|     | tile_column     | "INTEGER"                       |
-|     +-----------------+---------------------------------+
-|     | tile_row        | "INTEGER"                       |
-|     +-----------------+---------------------------------+
-|     | tile_data       | "BLOB (TIFF)"                   |
-|-----+-----------------+---------------------------------+
-</pre>
-Where tile_data is a tiff blob holding Float32 values as per GeoPackage specifications (<a href="http://docs.opengeospatial.org/is/17-066r1/17-066r1.html#_storage_formats_and_grid_cell_values">http://docs.opengeospatial.org/is/17-066r1/17-066r1.html#_storage_formats_and_grid_cell_values</a>).
-<pre>
-+============================+
-|  TABLE application_info    |
-+================+===========+
-| COLUMN         | TYPE      |
-+----------------+-----------+
-| id             | INTEGER   |
-| type           | TEXT      |
-| date           | DATETIME  |
-| info           | TEXT      |
-+----------------+-----------+
-</pre>
-and a single row:
-<pre>
-+=========================================================+
-|                TABLE estimate_info                      |
-+=====+=============+=====================================+
-| ROW | COLUMN      | VALUE                               |
-+-----+-------------+-------------------------------------+
-|     | type        | "soil_carbon"                       |
-|  1  +-------------+-------------------------------------+
-|     | date        | "yyyy-MM-ddTHH:mm:ssZ"              |
-|     +-------------+-------------------------------------+
-|     | info        | "&lt;estimate_info_json&gt;"              |
-+-----+-------------+-------------------------------------+
-</pre>
-Soil carbon "estimate_info.info" is a JSON object serialized as a string, such as:
-<pre>
-+-----------------------------------------------+
-| {                                             |
-|   "soil_carbon": {                            |
-|      "amount": &lt;amount_in_kg&gt;,                |
-|   }                                           |
-| }                                             |
-+-----------------------------------------------+
-</pre>
-
-<h2>6 Access and Authentication</h2>
+<h2>5 Access and Authentication</h2>
 
 Farmers MUST have an account setup on an estimator service in order to authenticate and access API endpoints. The service implementor is responsible for the creation of accounts; it is not covered in the service template specifications.
 
@@ -361,17 +230,17 @@ Unless specifically documented in the OpenAPI specifications, all API calls must
 
 Some of the information held by soil_sampling services may be considered sensitive from a GDPR perspective. The service's authorization server SHOULD request the client's end-user consent at service pairing time in order to deliver an access token.
 
-<h2>7 Dynamic Behaviour</h2>
+<h2>6 Dynamic Behaviour</h2>
 
 The purpose of the diagrams in this section is to illustrate communication patterns, more complex than plain request/response API calls, that involve several interactions and/or asynchronous behaviour. Even though a sequence diagram representation is used, the diagrams are by no means to be interpreted as UML Sequence Diagrams. Specifically, in the spirit of focusing on functional behaviour and readability, error handling is deliberately not covered in the diagrams.
 
-<h2>7.1 Estimate Preparation</h2>
+<h2>6.1 Order Results</h2>
 
-There are two methods for determining whether an estimate preparation has completed (successfully or unsuccessfully): by polling the estimate_info endpoint or by notification.
+There are two methods for determining whether an order results are ready (or failed): by polling the order_status endpoint or by notification.
 
-<h2>7.1.1 Polling</h2>
+<h2>6.1.1 Polling</h2>
 
-After requesting an estimate preparation, the client polls the estimate_info endpoint at regular intervals until the returned status is READY or FAILED.
+After submitting an order, the client polls the order_status endpoint at regular intervals until the returned status is READY or FAILED.
 
 The status may be CONFIGURATION_REQUIRED which indicates that a user action is required on the user interface of the estimator. By convention, in case of CONFIGURATION_REQUIRED status, the service SHOULD return a browser URL to the location where a user can provide additional parameters (as required for a specific service implementation). It is the user interface of the ADIS originating the request to display an appropriate message to the end-user with a clickable link to the provided URL.
 
@@ -379,11 +248,11 @@ The status may be CONFIGURATION_REQUIRED which indicates that a user action is r
 
 <h2>7.1.2 Notification</h2>
 
-If a notification URL was supplied on the prepare_estimate endpoint, it will be invoked by the estimator when the preparation status changes.
+If a notification URL was supplied on the submit_order endpoint, it will be invoked by the soil_sampling service when the  status changes.
 
 <img src="doc/estimate_notification.png" style="width: 420px" />
 
-Estimators MUST invoke the notification URL supplied by the client with an HTTPS POST command. The payload will be identical to the one that would be returned by the estimate_info request.
+soil_sampling services MUST invoke the notification URL supplied by the client with an HTTPS POST command. The payload will be identical to the one that would be returned by the order_status request.
 
 <h2>8.2 General Comments on Notifications</h2>
 
