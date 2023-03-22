@@ -1239,7 +1239,6 @@
               "ASSIGNED_TO_SAMPLER",
               "SOIL_SAMPLING_IN_PROGRESS",
               "LAB_ANALYSIS_IN_PROGRESS",
-              "CONFIGURATION_REQUIRED",
               "READY",
               "FAILED"
             ]
