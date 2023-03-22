@@ -203,27 +203,14 @@ This endpoint must be invoked by the soil sampler when all the sampling bags for
 +-------------+------------------------------+
 |      Inputs | job id, bags information     |
 +-------------+------------------------------+
-|     Outputs | -                            |
-+-------------+------------------------------+
-</pre>
-When successful, the job's status MUST be set to COMPLETED.
-
-<h2>5.2.5 Complete Sampling Job</h2>
-
-This endpoint must be invoked by the soil sampler when all the sampling bags for an order have been collected. An error 422 SHOULD be generated if the status of the job is different from COMPLETED.
-<pre>
-+--------------------------------------------+
-| download_shipping_list                     |
-+-------------+------------------------------+
-|      Inputs | job id                       |
-+-------------+------------------------------+
 |     Outputs | Printable shipping document  |
 +-------------+------------------------------+
 </pre>
 The shipping document must include the shipping address to which the sampler must send the bags, along with the shipping document itself.
 
+When successful, the job's status MUST be set to COMPLETED.
 
-<h2>5.2.6 Renounce Sampling Job</h2>
+<h2>5.2.5 Renounce Sampling Job</h2>
 
 A soil sampler may invoke this endpoint when he is not able to carry out a soil sampling job; cancelled jobs can no longer be accessed by the sampler. It is up to the provider (implementer) to re-allocate the job to a different soil sampler or cancel the customer's order. An error 422 SHOULD be generated if the status of the job is different from PENDING.
 <pre>
