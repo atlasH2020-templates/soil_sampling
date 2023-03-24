@@ -48,7 +48,7 @@ the soil_sampling service template standardizes the means by which customers may
 
 <img src="doc/soil_sampling_process.png" style="width: 420px"/>
 
-The high level flow is: the farmer (or an advisor) sends an order to a soil_sampling service that includes the fields, the zones within each field to be sampled, and the stitches to be sampled. The soil_sampling service enables a soil sampler to access the relevant information which includes all necessary data to physically carry out the procedure on the fields. At the end of the collection, the soil sampler indicates notifies the soil_sampling service of completion, receives back the shipping details and shipping references of an analysis lab to which he sends the bags. Upon reception of the bags, the lab carries out the required analysis and transmits them back to the organization operating the soil_sampling service, which in turn converts the information into the standardized format and returns it to the original requester.
+The high level flow is: the farmer (or an advisor) sends an order to a soil_sampling service that includes the fields, the zones within each field to be sampled, and the stitches to be sampled. The soil_sampling service enables a soil sampler to access the relevant information which includes all necessary data to physically carry out the procedure on the fields. At the end of the collection, the soil sampler delivers collected information to the soil_sampling service, receives back the shipping details and shipping references of an analysis lab to which he sends the bags. Upon reception of the bags, the lab carries out the required analysis and transmits them back to the organization operating the soil_sampling service, which in turn converts the information into the standardized format and returns it to the original requester.
 
 <h2>5 Service Template API Overview</h2>
 
@@ -64,7 +64,7 @@ This section provides a very high-level summary of the soil_sampling API:
       Renounce sampling job
       Acquire sampling job
       Release sampling job
-      Complete sampling job
+      Deliver sampling job
       Download shipping list
 </pre>
 Implementations of soil_sampling may require more parameters that are not included in the API. Such implementations MAY provide end-user configuration and management tools in a proprietary user interface.
@@ -194,12 +194,12 @@ This endpoint is invoked if, for some reason, execution of an acquired soil samp
 </pre>
 When successful, the job's status MUST be reset to PENDING.
 
-<h2>5.2.4 Complete Sampling Job</h2>
+<h2>5.2.4 Deliver Sampling Job</h2>
 
 This endpoint must be invoked by the soil sampler when all the sampling bags for an order have been collected. An error 422 SHOULD be generated if the status of the job is different from ACQUIRED.
 <pre>
 +--------------------------------------------+
-| complete_sampling_job                      |
+| deliver_sampling_job                       |
 +-------------+------------------------------+
 |      Inputs | job id, bags information     |
 +-------------+------------------------------+
@@ -208,7 +208,7 @@ This endpoint must be invoked by the soil sampler when all the sampling bags for
 </pre>
 The shipping document must include the shipping address to which the sampler must send the bags, along with the shipping document itself.
 
-When successful, the job's status MUST be set to COMPLETED.
+When successful, the job's status MUST be set to DELIVERED.
 
 <h2>5.2.5 Renounce Sampling Job</h2>
 

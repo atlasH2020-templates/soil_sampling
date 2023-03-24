@@ -762,7 +762,7 @@
         }
       }
     },
-    "/sampling_jobs/{id}/complete": {
+    "/sampling_jobs/{id}/deliver": {
       "post": {
         "security": [
           {
@@ -772,7 +772,7 @@
         "tags": [
           "Sampling Jobs"
         ],
-        "summary": "Complete a soil sampling activity (complete_sampling_job).",
+        "summary": "Complete a soil sampling activity by delivering results (deliver_sampling_job).",
         "parameters": [
           {
             "name": "id",
@@ -963,7 +963,6 @@
           "P2O5",
           "N",
           "CaCl2",
-          "N",
           "B",
           "CaO",
           "Cu",
@@ -1051,7 +1050,7 @@
             "enum": [
               "PENDING",
               "ACQUIRED",
-              "COMPLETED"
+              "DELIVERED"
             ]
           },
           "modified_on": {
