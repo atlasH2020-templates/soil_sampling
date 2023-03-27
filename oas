@@ -976,7 +976,6 @@
           "cec",
           "soc",
           "bulk_density",
-          "weight_sample",
           "weight_dried_sample"
         ]
       },
@@ -985,7 +984,7 @@
         "enum": [
           "auger_diameter",
           "weight_bagged_sample",
-          "weight_collected_sample"
+          "weight_sampled_stitches"
         ]
       },
       "SamplingJobSummary": {
