@@ -402,7 +402,7 @@
         }
       }
     },
-    "/sampling_jobs": {
+    "/jobs": {
       "get": {
         "security": [
           {
@@ -481,7 +481,7 @@
         }
       }
     },
-    "/sampling_jobs/{id}": {
+    "/jobs/{id}": {
       "delete": {
         "security": [
           {
@@ -555,7 +555,7 @@
         }
       }
     },
-    "/sampling_jobs/{id}/acquire": {
+    "/jobs/{id}/acquire": {
       "parameters": [
         {
           "name": "id",
@@ -762,7 +762,7 @@
         }
       }
     },
-    "/sampling_jobs/{id}/deliver": {
+    "/jobs/{id}/deliver": {
       "post": {
         "security": [
           {
