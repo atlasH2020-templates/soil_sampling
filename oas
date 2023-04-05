@@ -6,7 +6,7 @@
   },
   "externalDocs": {
     "description": "Service Template Document",
-    "url": "https://htmlpreview.github.io/?https://github.com/atlasH2020-templates/soil_sampling/blob/v0/doc.html"
+    "url": "https://htmlpreview.github.io/?https://github.com/atlasH2020-templates/soil_sampling/blob/v0.0.1/doc.html"
   },
   "servers": [
     {
